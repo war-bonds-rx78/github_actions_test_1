@@ -3,8 +3,8 @@ on: push
 jobs:
   print:
     runs-on: ubuntu-latest
-  env:
-    PASS: ${{ secrets.PASSWORD }}
-  steps:
-    - run: echo "${PASS}"
-    - run: echo "${PASS:0:1} ${PASS#?}"
+    env:
+      PASS: ${{ secrets.PASSWORD }}
+    steps:
+      - run: echo "${PASS}"                   # ログ出力はマスクされる
+      - run: echo "${PASS:0:1} ${PASS#?}" # ログ出力はマスクされない
