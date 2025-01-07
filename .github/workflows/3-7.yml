@@ -5,6 +5,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: printenv | grep 'LITERAL_'
-```     env:
+        env:
           LITERAL_NULL: : ${{ null }}
           LITERAL_BOOLEAN: : ${{ true }}
