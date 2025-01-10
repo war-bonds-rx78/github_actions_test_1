@@ -10,3 +10,4 @@ jobs:
       - uses: actions/checkout@v4
       - run: pwd
       - run: ls -ltr
+      - run: pytest -s tests/
