@@ -1,11 +1,14 @@
+# import os
 import logging
 from datetime import datetime
 from logging.handlers import TimedRotatingFileHandler
 # import psycopg2
 import sqlite3
+import click
 
-
-def main():
+@click.command()
+@click.option("--target_file", "-s", default="select.sql", help="実行SQLファイル")
+def main(target_file):
 
     ## ログ設定
     logger = logging.getLogger(__name__)
@@ -19,6 +22,9 @@ def main():
     logger.addHandler(handler)
 
     logger.info("Start")
+    # 環境変数の値を取得
+    # hoge = os.getenv("HOGE")
+    # logger.info(hoge)
     ## DB接続
     # DB_CONFIG = {
     #     "dbname": "your_database_name",
@@ -31,7 +37,7 @@ def main():
     ## 実行SQLファイルの読み込み
     ## パス直下
     # query_1 = ""
-    sql_file = "sql/select.sql"
+    sql_file = "sql/" + target_file
     now = datetime.now()
     formatted_now = now.strftime('%Y%m%d%H%M')
     file_name = "data" + formatted_now + ".csv"
@@ -48,7 +54,7 @@ def main():
         with sqlite3.connect("your_sqlite_file.db") as conn:
             cur = conn.cursor()
             ## SQL実行
-            logger.info(sql)
+            logger.info(f"実行SQL: {sql}")
             cur.execute(sql)
             # cur.execute(sql,(query_1,))
             # fetchone() を使って1行ずつ処理
@@ -66,11 +72,22 @@ def main():
 def _file_write(logger, file_path, data):
     try:
         with open(file_path, "a") as f :
-            write_data = ", ".join(map(str, data))
+            write_data = ",".join(map(str, data))
             f.write(write_data+"\n")
     except Exception as e:
         logger.error(str(e))
         return
+
+# データ内容をslackに通知 ※　予定
+def _slack_info(logger, data):
+
+    # プロキシ設定
+    # slackのBot tokenとチャンネルID
+    # WebClientに設定
+    # slackに通知
+    # 通知成功
+    # 通知失敗
+    pass
 
 if __name__ == "__main__":
     main()

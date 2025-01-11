@@ -1,22 +1,23 @@
 import sys
 import pytest
-from unittest.mock import MagicMock, patch
-from datetime import datetime
 import sqlite3
 import os
+from unittest.mock import MagicMock, patch
+from datetime import datetime
+from click.testing import CliRunner
 
 
 # プロジェクトのルートディレクトリをsys.pathに追加
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 # テスト対象のモジュールをインポート
-from main import main, _file_write
+from sample import main, _file_write
 
 
 # ログ出力のテスト
 @pytest.fixture
 def mock_logger():
-    with patch('main.logging.getLogger') as mock_get_logger:
+    with patch('sample.logging.getLogger') as mock_get_logger:
         mock_logger = MagicMock()
         mock_get_logger.return_value = mock_logger
         yield mock_logger
@@ -53,36 +54,38 @@ def mock_logger():
     
 
 # ファイル書き込み処理のテスト
-@patch('main.open', create=True)  # ファイル操作をモック
+@patch('sample.open', create=True)  # ファイル操作をモック
 def test_file_write(mock_open):
     mock_file = MagicMock()
     mock_open.return_value.__enter__.return_value = mock_file
 
     # データの書き込み
-    _file_write(mock_file, 'test.csv', (1, 'test_data'))
+    _file_write(mock_file, 'test.csv', (1,'test_data'))
 
     # ファイル書き込みの確認
-    mock_file.write.assert_called_with("1, test_data\n")
+    mock_file.write.assert_called_with("1,test_data\n")
 
 
 # エラーハンドリングのテスト (DB接続時)
-@patch('main.sqlite3.connect', side_effect=sqlite3.DatabaseError("DB Error"))
-@patch('main.logging.getLogger') 
+@patch('sample.sqlite3.connect', side_effect=sqlite3.DatabaseError("DB Error"))
+@patch('sample.logging.getLogger') 
 def test_db_connection_error(mock_get_logger, mock_sqlite_connect):
     mock_logger = MagicMock()
     mock_get_logger.return_value = mock_logger
-    main()
+    # CliRunnerを使ってコマンドライン引数を渡す
+    runner = CliRunner()
+    runner.invoke(main, ["--target_file", "select.sql"])  # コマンドライン引数を渡
 
     # ロガーの呼び出しを確認
     mock_logger.error.assert_called_with('DB Error')
 
 
 # エラーハンドリングのテスト (ファイル書き込み時)
-@patch('main.open', side_effect=OSError("File write error"))
-@patch('main.logging.getLogger')
+@patch('sample.open', side_effect=OSError("File write error"))
+@patch('sample.logging.getLogger')
 def test_file_write_error(mock_get_logger, mock_open):
     mock_logger = MagicMock()
     mock_get_logger.return_value = mock_logger
-    _file_write(mock_logger, 'test.csv', (1, 'test_data'))
+    _file_write(mock_logger, 'test.csv', (1,'test_data'))
     # エラーメッセージがログに出力されることを確認
     mock_logger.error.assert_called_with('File write error')
