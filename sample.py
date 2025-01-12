@@ -44,6 +44,9 @@ def main(target_file):
     try:
         with open(sql_file, "r") as f:
             sql = f.read()
+    except FileNotFoundError as e:
+        logger.error(str(e))
+        return
     except Exception as e:
         logger.error(str(e))
         return
