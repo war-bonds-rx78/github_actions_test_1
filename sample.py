@@ -1,4 +1,5 @@
 # import os
+import csv
 import logging
 from datetime import datetime
 from logging.handlers import TimedRotatingFileHandler
@@ -54,12 +55,16 @@ def main(target_file):
     try:
         # with psycopg2.connect(**DB_CONFIG) as conn:
             # with conn.cursor() as cur:
+        # 複数のパラメータを渡す場合
+        # query_1 = list(_load_csv_params(logger, "param_data1.csv"))
+        # placeholders = ",".join(['%s'] * len(query_1))
+
         with sqlite3.connect("your_sqlite_file.db") as conn:
             cur = conn.cursor()
             ## SQL実行
             logger.info(f"実行SQL: {sql}")
             cur.execute(sql)
-            # cur.execute(sql,(query_1,))
+            # cur.execute(sql,(placeholders,))
             # fetchone() を使って1行ずつ処理
             while True:
                 result = cur.fetchone()
@@ -91,6 +96,18 @@ def _slack_info(logger, data):
     # 通知成功
     # 通知失敗
     pass
+
+# CSV形式のparamファイルを読み込む
+def _load_csv_params(logger, file_name) -> list:
+    try:
+        with open(file_name, "r") as f:
+            reader = csv.reader(f)
+            data_list = next(reader)
+
+        return data_list
+    except Exception as e:
+        logger.error(str(e))
+        return
 
 if __name__ == "__main__":
     main()
